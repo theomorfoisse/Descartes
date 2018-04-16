@@ -1,0 +1,31 @@
+%x=r_array
+%Bsamp: 2 x nsamp
+function [r_array,theta_0]=voisins(Bsamp,n)
+    l=length(Bsamp);
+    r_array=real(sqrt(dist2(Bsamp',Bsamp'))); % real is needed to
+                                          % prevent bug in Unix version
+    %v=zeros(n,2,l);
+    theta_0=zeros(l,1);
+    Y=zeros(2,l);
+
+    for i=1:l
+        index_v=find(r_array(i,:)<n);
+        %[~,index_v]=mink(r_array,n);
+        %[~,index]=sort(r_array(i,:));
+        %index_v=index(1:n);
+        v{i}=(Bsamp(:,index_v(:)))';
+        %v(:,:,i)=(Bsamp(:,index_v(:)))';
+    end
+    for i=1:l
+        X=pca(v{i});
+        %X=pca(v(:,:,i));
+        Y(:,i)=X(:,1)';
+        [theta_0(i),~]=cart2pol(Y(1,i),Y(2,i));
+    end
+    %theta_0=theta_0/pi;
+    %t=[Bsamp' theta_0];
+    %quiver(Bsamp(2,:),Bsamp(1,:),Y(2,:),Y(1,:))
+
+end
+
+%biplot(b(:,:,2),'scores',(x-x(:,2))','varlabels',{'v_1','v2'});
