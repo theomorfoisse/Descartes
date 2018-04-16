@@ -1,0 +1,78 @@
+%% Theo Morfoisse 
+%% 23/02/2018
+
+%Ici le but est d'utiliser un shape-context pour dÃ©crire l'image au lieu
+%des points. Car cela permet d'avoir une cohÃ©rence d'ordre dans les
+%donnÃ©es. 
+
+%Organisation of digits.mat :
+%I:matrix of 28*28*6000, representing 6000 images of 28*28
+%C:representing points whith a threshold at 200 pixels ( over 256 )
+%C{k}: tableau Ã  deux colonnes avec les coordonnÃ©es des points.
+%L:labels(1,2 ... )
+
+load('digits.mat');
+tic
+N=60000;
+N2=1000;
+trainN=N2*0.7; %nombre de data pour le training.
+
+%% Compute the shape context for the data
+%Utilisation de la fonction shapecontext prÃ©alablement codÃ©e. 
+
+%Nombre d'intervalle pour r. (=nombre de cercles)
+nb_r=10;
+%Nombre d'intervalle pour thÃ©ta. (=nombre d'angles)
+nb_theta=8;
+%Nombre d'intervalle pour l'histogramme d'histogramme. (En fonction de
+%l'Ã©tendue des valeurs de densitÃ© pour chaque zone ).
+nb_inter=5;
+%histo:[n_r*n_theta*n_inter,n]
+[BhPlot,histPlot,histo]=shapecontext5(C,N2,nb_r,nb_theta,nb_inter,10);
+
+% size(histo)
+%% Resizing of L 
+%Pour une image i, normalement L est juste un nombre indiquant le label
+%correspond Ã  l'image. Maintenant, pour pouvoir calculer le cross-entropie,
+%L change. Pour une image i, L est un vecteur de 10 lignes avec que des zÃ©ros et un Ã 
+%l'incide correspond au label.
+ 
+l=L;
+newL=zeros(N,10);
+for i=1:N
+    li=L(i)+1;
+    newL(i,li)=1;
+end
+L=newL;
+%L : [60000,10]
+
+%% Definition of the network.
+%On utilise patternet pour des problÃ¨mes de pattern recognition avec
+%plusieurs classes. 
+
+%net=patternnet([neurons if first layer, "" in the second,...]).
+net=patternnet([250 10]);
+net=train(net,histo(:,1:trainN),L(1:trainN,:)');
+%view(net)
+y=net(histo(:,trainN+1:N2));   % [10,60000], proba pour chaque image qu'ils soient dans telles ou telles classes. ( 0<pi<1)
+perf=perform(net,L(trainN+1:N2,:)',y); % Ceci calcule l'erreur que l'on obtient. 
+%On obtient la mÃªme chose avec la cross-entropy
+
+
+%Ici je calcule la moyenne des bonnes pÃ©dictions.
+%C'est Ã  dire que pour chaque image, on va associer une proba Ã  chacune des
+%classes. ( 0<pi<1 ) La classe avec la probabilitÃ© la plus forte sera
+%choisie comme Ã©tant la bonne classe. une fois l'indice de cette classe
+%obtenue on pourra le comparer au label.
+
+Y=zeros(N2-trainN,1);
+%Index=zeros(N2-trainN,1);
+for i=1:N2-trainN
+    [~,index]=max(y(:,i));
+    Y(i)=(index==l(i+trainN)+1);
+    %Index(i)=index;
+end
+mean(Y)
+
+plotconfusion(L(trainN+1:N2,:)',y)
+toc
