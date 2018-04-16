@@ -1,0 +1,44 @@
+%Morfoisse ThÃ©o
+%Jeudi 1 Mars 11:17.
+
+% 1er problÃ¨me avec les nuages de points. Si le nombre de points est
+% variable, cela devient naÃ¯f de mettre ces points lÃ  dans un rÃ©seau de
+% neurones, car la correspondance entre les points n'est pas prÃ©servÃ©e. Il
+% faut donc trouver un moyen de reprÃ©senter ces points avec un mÃªme taille
+% de donnÃ©es. Utiliser les shapes context est une idÃ©e. 
+
+%Ici utilisation du fonction dÃ©jÃ  faites pour le shape context.
+
+%load('digits.mat');
+%tic
+function [BhPlot,histPlot,histo3]=shapecontext5(C,n,nb_r,nb_theta,nb_inter,nb_voisins)
+
+    nbins_theta=nb_theta;
+    nbins_r=nb_r;
+    r_inner=0.5;
+    r_outer=3.5;
+    histo3=[];
+    histPlot=[];
+    for i=1:n %i une image
+        nsamp=length(C{i});
+        Bsamp=C{i};
+        %Tsamp=zeros(1,nsamp);
+        out_vec=zeros(1,nsamp);
+        % [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);
+        [BH,mean_dist]=sc_compute2(Bsamp,[],nbins_theta,nbins_r,r_inner,r_outer,out_vec,nb_voisins);
+        if i==1
+            BhPlot=BH;
+        end
+        %Calcul l'histogramme sur les densitÃ©s dans chaque zone pour chaque
+        %image.
+        %BH=BH';
+        histo2=zeros(nb_inter,nb_theta*nb_r);
+        for j=1:nb_theta*nb_r
+            histo2(:,j)=hist(BH(:,j),nb_inter);
+        end
+        histPlot=[histPlot histo2];
+        histo2=reshape(histo2',nb_theta*nb_r*nb_inter,1);
+        histo3=[histo3 histo2];
+    end
+end
+%toc
