@@ -1,0 +1,62 @@
+%Morfoisse ThÃ©o
+%Jeudi 22 FÃ©vrier 13:55.
+
+% 1er problÃ¨me avec les nuages de points. Si le nombre de points est
+% variable, cela devient naÃ¯f de mettre ces points lÃ  dans un rÃ©seau de
+% neurones, car la correspondance entre les points n'est pas prÃ©servÃ©e. Il
+% faut donc trouver un moyen de reprÃ©senter ces points avec un mÃªme taille
+% de donnÃ©es. Utiliser les shapes context est une idÃ©e. 
+
+%load('digits.mat');
+%tic
+function [BhPlot,histPlot,histo3]=shapecontext3(C,n,nb_r,nb_theta,nb_inter)
+    %n=100;
+    %nb_r=5;
+    %nb_theta=5;
+    %nb_inter=10;
+    sigma=1;
+    
+    histPlot=[];
+    histo3=[];
+    BhPlot=[];
+    for i=1:n %i une image
+        l=length(C{i});
+        %On transforme en r,thÃ©ta.
+        %[C{i}(2,:),C{i}(1,:)]=cart2pol(C{i}(1,:),C{i}(2,:));
+        distance=zeros(1,l,l);
+        angle=zeros(1,l,l);
+        histo1=[];
+        histo2=zeros(nb_inter,nb_theta*nb_r);
+        
+        %Calcul des distances en r et en thÃ©ta entre chaques points.
+        for j=1:l %un point dans le nuage de points
+            C_for_j=C{i}-C{i}(:,j);
+            [C_for_j(2,:),C_for_j(1,:)]=cart2pol(C_for_j(1,:),C_for_j(2,:));
+            distance(1,:,j)=C_for_j(1,:);
+            angle(1,:,j)=C_for_j(2,:);
+            
+            X=[distance(1,:,j)' angle(1,:,j)'];
+            %On calcule l'histogramme 2D pour chaque point en fct de r et
+            %thÃ©ta.
+            X=hist3(X,[nb_r,nb_theta]);
+            X=imgaussfilt(X,sigma);
+            %On met l'histogramme 2D sous forme d'un vecteur.
+            X=reshape(X',nb_r*nb_theta,1);
+            %On concatÃ¨ne tout les histogrammes pour chaques points du nuage.
+            histo1=[histo1 X];
+        end
+        if (i==1)
+            BhPlot=histo1;
+        end
+        %Calcul l'histogramme sur les densitÃ©s dans chaque zone pour chaque
+        %image.
+        for j=1:nb_theta*nb_r
+            histo2(:,j)=hist(histo1(j,:),nb_inter);
+
+        end
+        histPlot=[histPlot histo2];
+        histo2=reshape(histo2',nb_theta*nb_r*nb_inter,1);
+        histo3=[histo3 histo2];
+    end
+end
+%toc
