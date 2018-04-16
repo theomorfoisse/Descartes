@@ -1,0 +1,113 @@
+%% Theo Morfoisse 
+%% 08/03/2018
+
+%Ici le but est d'utiliser un shape-context pour dÃ©crire l'image au lieu
+%des points. Car cela permet d'avoir une cohÃ©rence d'ordre dans les
+%donnÃ©es. 
+
+%Organisation of digits.mat :
+%I:matrix of 28*28*6000, representing 6000 images of 28*28
+%C:representing points whith a threshold at 200 pixels ( over 256 )
+%C{k}: tableau Ã  deux colonnes avec les coordonnÃ©es des points.
+%L:labels(1,2 ... )
+
+load('digits.mat');
+tic
+N=60000;
+N2=60000;
+trainN=N2*0.7; %nombre de data pour le training.
+
+%% Compute the shape context for the data
+%Utilisation de la fonction shapecontext prÃ©alablement codÃ©e. 
+
+%Nombre d'intervalle pour r. (=nombre de cercles)
+nb_r=5;
+%Nombre d'intervalle pour thÃ©ta. (=nombre d'angles)
+nb_theta=8;
+%Nombre d'intervalle pour l'histogramme d'histogramme. (En fonction de
+%l'Ã©tendue des valeurs de densitÃ© pour chaque zone ).
+nb_inter=10;
+%histo:[n_r*n_theta*n_inter,n]
+%[BhPlot,histPlot,histo]=shapecontext5(C,N2,nb_r,nb_theta,nb_inter,10);
+
+%% Pour shape context4
+
+[BhPlot,histPlot,histo]=shapecontext4(C,N2,nb_r,nb_theta,nb_inter);
+% BhPlot=BhPlot'; % pour shapecontext4.
+% %BhPlot = [n,n_r*n_theta]
+% n=length(BhPlot)
+% % On remet le vecteur en matrice. Attention Ã  l'ordre entre thÃ©ta et r. 
+% X=reshape(BhPlot,nb_theta,nb_r,n);
+% Y=zeros(nb_r,nb_theta,n);
+% for i=1:n
+%     Y(:,:,i)=X(:,:,i)';
+% %     les donnÃ©es Ã©taient Ã  l'envers avec shapecontext4 car i=1
+% %     correspondait au plus grand rayon. 
+%     Y(:,:,i)=Y(nb_r:-1:1,:,i);
+% %     Y(:,:,i)=Y(:,:,i)/max(max(Y(:,:,i)));
+% end
+% for i=1:n
+%     Y(:,:,i)
+% end
+% for i=1:20
+%     subplot(4,5,i)
+%     imshow(Y(:,:,i))
+% end
+
+%% Pour shape context3
+
+% [BhPlot,histPlot,histo]=shapecontext3(C,N2,nb_r,nb_theta,nb_inter);
+% n=length(BhPlot)
+% X=reshape(BhPlot,nb_theta,nb_r,n);
+% Y=zeros(nb_r,nb_theta,n);
+% for i=1:n
+%     Y(:,:,i)=X(:,:,i)';
+%     Y(:,:,i)=Y(:,:,i)/max(max(Y(:,:,i)));
+% end
+% for i=1:n
+%     Y(:,:,i);
+% end
+% for i=1:20
+%     subplot(4,5,i)
+%     imshow(Y(:,:,i))
+% end
+
+%% Pour shape context 5
+
+% [BhPlot,histPlot,histo]=shapecontext5(C,N2,nb_r,nb_theta,nb_inter,10);
+% BhPlot=BhPlot'; % pour shapecontext4.
+% %BhPlot = [n,n_r*n_theta]
+% n=length(BhPlot)
+% % On remet le vecteur en matrice. Attention Ã  l'ordre entre thÃ©ta et r. 
+% X=reshape(BhPlot,nb_theta,nb_r,n);
+% Y=zeros(nb_r,nb_theta,n);
+% for i=1:n
+%     Y(:,:,i)=X(:,:,i)';
+% %     les donnÃ©es Ã©taient Ã  l'envers avec shapecontext4 car i=1
+% %     correspondait au plus grand rayon. 
+%     Y(:,:,i)=Y(nb_r:-1:1,:,i);
+%     Y(:,:,i)=Y(:,:,i)/max(max(Y(:,:,i)));
+% end
+% for i=1:n
+%     Y(:,:,i)
+% end
+% for i=1:20
+%     subplot(4,5,i)
+%     imshow(Y(:,:,i))
+% end
+
+
+%% Histogramme final
+% 
+% % histoPlot= [n_inter, n_r*n_theta * nsample]
+% a=histPlot(:,1+0*nb_r*nb_theta:1*nb_r*nb_theta);
+% a=a(:,nb_r*nb_theta:-1:1);
+% for i=1:40
+%     if(a(6,i)==80)
+%         a(6,i)=0;
+%         a(1,i)=80;
+%     end
+% end
+% a;
+% a=a/max(max(a));
+% imshow(a)
