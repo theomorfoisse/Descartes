@@ -23,3 +23,5 @@ Il vaut mieux utiliser ShapeContext4. ( Attention le nombre d'inputs différe en
 Enfin Shape permet de visualiser des histogrammes et des shapes contexts.
 Malheuresement, cette fonction doit être adaptée pour pouvoir output les histogrammes 
 avec les données fovéas.
+
+Le code ConvolutionalNN est lui sur un réseau de neurones convolutifs et qui traite les pixels directement des images.
