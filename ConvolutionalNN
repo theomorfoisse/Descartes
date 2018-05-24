@@ -1,0 +1,112 @@
+%ThÃ©o Morfoisse. 02/02/2018
+
+%First trying: With a convolution neural network. Classification.
+
+%Organisation of digits.mat :
+%I:matrix of 28*28*6000, representing 6000 images of 28*28
+%C:representing points whith a threshold at 200 pixels ( over 256 )
+%L:labels(1,2 ... )
+
+load('digits.mat');
+
+% To see just one image with the points.
+% 
+% close all
+% k = 1000;
+% imagesc(I(:,:,k));colormap gray;axis equal
+% hold on
+% plot(C{k}(2,:),C{k}(1,:),'.r','MarkerSize',20)
+
+% figure;
+% perm=randperm(6000,20);
+% for i = 1:20
+%     subplot(4,5,i);
+%     imagesc(I(:,:,i));colormap gray;axis equal
+% %     hold on
+% %     plot(C{i}(2,:),C{i}(1,:),'.r','MarkerSize',10)
+% end
+% 
+% % To count the number of examples in each labels.
+% LabelCount=zeros(1,10);
+% for i=1:60000
+%     label=L(i)+1;
+%     LabelCount(1,label)=LabelCount(1,label)+1;
+% end
+% LabelCount;
+
+% Separate training and validation data.
+N=600;
+trainNum=N*0.7;
+
+%Need to transform train inputs in 4D matrix with the dimension 3
+%always equal to one.(channels=1).
+trainDigitData=permute(I(:,:,1:trainNum), [1 2 4 3]);
+%need to be a categorical vector for the trainLabel.
+trainLabel=categorical(L(1:trainNum));
+
+%valDigitData={I(:,:,trainNum+1:60000);L(trainNum+1:60000)};
+validationdata=permute(I(:,:,trainNum+1:N), [1 2 4 3]);
+validationlabel=categorical(L(trainNum+1:N));
+valDigitData={validationdata;validationlabel};
+
+%Defining the layers.
+        
+layers = [
+    imageInputLayer([28 28 1])  %Size of the images 
+
+    %One convolutional layer with 16 filters of size 3. The padding is
+    %equal to 1 ( depend of the size of the filter: to permit that the 
+    %spatial output size is the same than the spatial input size. 
+    
+    convolution2dLayer(3,16,'Padding',1)    
+    batchNormalizationLayer                 % Optimization of the problem
+    reluLayer                               % Activation layer
+
+    %Filter of size 2. Stride : step size we want for the "reduction".
+    maxPooling2dLayer(2,'Stride',2)         
+
+    convolution2dLayer(3,32,'Padding',1)
+    batchNormalizationLayer
+    reluLayer
+
+    maxPooling2dLayer(2,'Stride',2)
+
+    convolution2dLayer(3,64,'Padding',1)
+    batchNormalizationLayer
+    reluLayer
+
+    %fc with 10 neurons bcs they are 10 different classes.
+    fullyConnectedLayer(10)
+    %SoftmaxLayer permit the normalization of the ouput. (sum equal to
+    %one).
+    softmaxLayer
+    %associate the ouput of the softmaxLayer to a predicted class and
+    %compute the loss.
+    classificationLayer];
+
+
+%Defining the options of training;
+%The validation Data is not used for the update of the weight during
+%training, is juste to compute the accuracy during training. 
+%One epochs is a fully cycle training with the same training data set.
+%sgdm=Stochastic gradient descent with momentum.
+%verbose=informations in the command windows.
+options=trainingOptions('sgdm',...
+    'MaxEpochs',2, ...
+    'ValidationData',valDigitData,...
+    'ValidationFrequency',20,...
+    'Verbose',false,...
+    'Plots','training-progress');
+
+%training
+
+net=trainNetwork(trainDigitData,trainLabel,layers,options);
+
+%Classify validation data and compute accurancy.
+% 
+predictedLabels=classify(net,validationdata)
+% valLabels=validationlabel;
+% 
+% accuracy=sum(predictedLabels==valLabels)/numel(valLabels)
+
+% plotconfusion(L(trainNum+1:N)',predictedLabels)
